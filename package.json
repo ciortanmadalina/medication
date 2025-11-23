@@ -1,0 +1,17 @@
+{
+  "name": "medication-reminder-pwa",
+  "version": "1.0.0",
+  "description": "PWA medication reminder with push notifications",
+  "scripts": {
+    "setup": "node setup.js",
+    "dev": "netlify dev",
+    "build": "echo 'No build step needed'",
+    "generate-vapid": "web-push generate-vapid-keys"
+  },
+  "dependencies": {
+    "web-push": "^3.6.6"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

@@ -1,0 +1,20 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
+
+[dev]
+  functions = "netlify/functions"
+  publish = "public"
+  port = 8888
+
+# Scheduled function to check and send reminders every 5 minutes
+# Note: Scheduled functions only work in production on Netlify
+# For local testing, you'll need to manually trigger the scheduler function

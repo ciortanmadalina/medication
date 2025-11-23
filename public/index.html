@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2196F3">
+  <title>💊 Medication Reminder</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .status {
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    
+    .dose-list {
+      list-style: none;
+    }
+    
+    .dose-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      transition: background 0.2s;
+    }
+    
+    .dose-item:last-child {
+      border-bottom: none;
+    }
+    
+    .dose-item:hover {
+      background: #f8f9fa;
+    }
+    
+    .dose-icon {
+      font-size: 32px;
+      margin-right: 15px;
+    }
+    
+    .dose-info {
+      flex: 1;
+    }
+    
+    .dose-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    
+    .dose-time {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .dose-status {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .dose-status.pending {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    
+    .dose-status.overdue {
+      background: #fff3e0;
+      color: #f57c00;
+    }
+    
+    .dose-status.taken {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .footer {
+      text-align: center;
+      color: white;
+      margin-top: 30px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💊 Medication Reminder</h1>
+      <p>Never miss your medications</p>
+    </div>
+    
+    <div class="card">
+      <button id="subscribeBtn" class="btn btn-primary">
+        Enable Notifications
+      </button>
+      <div id="subscribeStatus"></div>
+    </div>
+    
+    <div class="card">
+      <h2 style="margin-bottom: 20px;">Today's Medications</h2>
+      <div id="dosesContainer" class="loading">Loading...</div>
+    </div>
+    
+    <div class="footer">
+      <p>PWA • Hosted on Netlify</p>
+      <p style="margin-top: 5px; font-size: 12px;">Last updated: <span id="lastUpdate">-</span></p>
+    </div>
+  </div>
+
+  <script>
+    const VAPID_PUBLIC_KEY = 'BALTT5ESduo13rAG2TEhR_60TuGufihpRQQorfBuShvXwFJXvCk5jyVHMpM2z_Aqn1UnzrrZ8fsjx8EAyZKoRy8';
+    
+    let swRegistration = null;
+    
+    // Convert base64 VAPID key to Uint8Array
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+      
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+    
+    // Register service worker
+    async function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        showStatus('subscribeStatus', 'Service Worker not supported', 'error');
+        return null;
+      }
+      
+      try {
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        console.log('Service Worker registered:', registration);
+        return registration;
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+        showStatus('subscribeStatus', 'Service Worker registration failed', 'error');
+        return null;
+      }
+    }
+    
+    // Subscribe to push notifications
+    async function subscribeToPush() {
+      if (!swRegistration) {
+        showStatus('subscribeStatus', 'Please wait...', 'info');
+        return;
+      }
+      
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          showStatus('subscribeStatus', 'Notification permission denied', 'error');
+          return;
+        }
+        
+        const subscription = await swRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+        
+        // Send subscription to server
+        const response = await fetch('/.netlify/functions/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(subscription)
+        });
+        
+        if (response.ok) {
+          showStatus('subscribeStatus', '✅ Notifications enabled!', 'success');
+          document.getElementById('subscribeBtn').textContent = 'Notifications Enabled';
+          document.getElementById('subscribeBtn').disabled = true;
+        } else {
+          showStatus('subscribeStatus', 'Failed to save subscription', 'error');
+        }
+      } catch (error) {
+        console.error('Push subscription failed:', error);
+        showStatus('subscribeStatus', 'Failed to subscribe: ' + error.message, 'error');
+      }
+    }
+    
+    // Load and display doses
+    async function loadDoses() {
+      try {
+        const response = await fetch('/.netlify/functions/getStatus');
+        const data = await response.json();
+        
+        const container = document.getElementById('dosesContainer');
+        
+        if (data.doses.length === 0) {
+          container.innerHTML = '<p class="loading">No medications configured</p>';
+          return;
+        }
+        
+        const doseList = document.createElement('ul');
+        doseList.className = 'dose-list';
+        
+        data.doses.forEach(dose => {
+          const li = document.createElement('li');
+          li.className = 'dose-item';
+          
+          const icon = getStatusIcon(dose.status);
+          const statusBadge = getStatusBadge(dose.status);
+          
+          li.innerHTML = `
+            <div class="dose-icon">${icon}</div>
+            <div class="dose-info">
+              <div class="dose-label">${dose.label}</div>
+              <div class="dose-time">⏰ ${dose.time}</div>
+            </div>
+            <div class="dose-status ${dose.status}">${statusBadge}</div>
+          `;
+          
+          doseList.appendChild(li);
+        });
+        
+        container.innerHTML = '';
+        container.appendChild(doseList);
+        
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+      } catch (error) {
+        console.error('Failed to load doses:', error);
+        document.getElementById('dosesContainer').innerHTML = 
+          '<p class="loading" style="color: #e53935;">Failed to load doses</p>';
+      }
+    }
+    
+    function getStatusIcon(status) {
+      switch(status) {
+        case 'taken': return '✅';
+        case 'overdue': return '⚠️';
+        case 'pending': return '⏳';
+        default: return '💊';
+      }
+    }
+    
+    function getStatusBadge(status) {
+      switch(status) {
+        case 'taken': return 'Taken';
+        case 'overdue': return 'Overdue';
+        case 'pending': return 'Pending';
+        default: return status;
+      }
+    }
+    
+    function showStatus(elementId, message, type) {
+      const statusDiv = document.getElementById(elementId);
+      statusDiv.className = `status ${type}`;
+      statusDiv.textContent = message;
+      statusDiv.style.display = 'block';
+    }
+    
+    // Listen for service worker messages
+    navigator.serviceWorker?.addEventListener('message', (event) => {
+      if (event.data.type === 'DOSE_UPDATED') {
+        console.log('Dose updated, refreshing...');
+        loadDoses();
+      }
+    });
+    
+    // Initialize app
+    async function init() {
+      swRegistration = await registerServiceWorker();
+      
+      // Check if already subscribed
+      if (swRegistration) {
+        const subscription = await swRegistration.pushManager.getSubscription();
+        if (subscription) {
+          document.getElementById('subscribeBtn').textContent = 'Notifications Enabled';
+          document.getElementById('subscribeBtn').disabled = true;
+          showStatus('subscribeStatus', '✅ Already subscribed', 'success');
+        }
+      }
+      
+      // Load doses
+      loadDoses();
+      
+      // Refresh doses every 30 seconds
+      setInterval(loadDoses, 30000);
+    }
+    
+    // Event listeners
+    document.getElementById('subscribeBtn').addEventListener('click', subscribeToPush);
+    
+    // Start app
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
