@@ -15,6 +15,10 @@
   publish = "public"
   port = 8888
 
-# Scheduled function to check and send reminders every 5 minutes
+[[scheduled.functions]]
+  name = "scheduler"
+  cron = "*/15 * * * *"
+
+# Scheduled function runs every 15 minutes to check and send reminders
 # Note: Scheduled functions only work in production on Netlify
 # For local testing, you'll need to manually trigger the scheduler function

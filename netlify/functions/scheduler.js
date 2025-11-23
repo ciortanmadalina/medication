@@ -77,9 +77,9 @@ exports.handler = async (event) => {
         continue;
       }
 
-      // Check if we should send (first time or 5+ minutes since last send)
+      // Check if we should send (first time or 15+ minutes since last send)
       const shouldSend = !dose.lastSentISO || 
-        (now - new Date(dose.lastSentISO)) > 5 * 60 * 1000;
+        (now - new Date(dose.lastSentISO)) > 15 * 60 * 1000;
 
       if (shouldSend) {
         // Send reminder
