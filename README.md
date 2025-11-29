@@ -8,14 +8,15 @@ A free Progressive Web App hosted on Netlify that sends Android push notificatio
 - ⏰ **Smart Reminders** - Keeps sending until dose is marked taken
 - 📱 **PWA** - Install on Android home screen
 - 🆓 **100% Free** - No paid services required
-- 🔔 **Persistent Reminders** - Automatic checks every 5 minutes (in production)
+- 🔔 **Persistent Reminders** - Automatic checks every 15 minutes (in production)
+- ⚙️ **Admin Panel** - Add, edit, and delete medications via web interface
 
 ## Tech Stack
 
 - **Hosting:** Netlify (Functions + Static Site)
 - **Frontend:** Vanilla JavaScript PWA
 - **Push:** Web Push API with VAPID
-- **Data:** Simple JSON file storage
+- **Data:** Netlify Blobs (production) + JSON file (development)
 - **Notifications:** Android-compatible push notifications
 
 ## Quick Start
@@ -172,7 +173,13 @@ Note: The scheduled function configuration is in `netlify.toml` (currently comme
 
 ### Customize Medications
 
-Edit `data/db.json`:
+**Option 1: Use Admin Panel (Recommended)**
+
+1. Open your app in the browser
+2. Click "⚙️ Admin Panel" link at the bottom
+3. Add, edit, or delete medications with a user-friendly interface
+
+**Option 2: Edit `data/db.json` manually**
 
 ```json
 {
@@ -187,7 +194,13 @@ Edit `data/db.json`:
 
 ### Customize Reminder Frequency
 
-Edit `netlify/functions/scheduler.js` to change the 5-minute check interval logic.
+Edit `netlify.toml` to change the cron schedule (currently set to every 15 minutes):
+
+```toml
+[[scheduled.functions]]
+  name = "scheduler"
+  cron = "*/15 * * * *"  # Every 15 minutes
+```
 
 ## Project Structure
 
@@ -195,17 +208,23 @@ Edit `netlify/functions/scheduler.js` to change the 5-minute check interval logi
 medication/
 ├── public/
 │   ├── index.html              # Main app UI
+│   ├── admin.html              # Admin panel for managing medications
 │   ├── service-worker.js       # Push notification handler
 │   ├── manifest.webmanifest    # PWA manifest
 │   └── icons/                  # App icons
 ├── netlify/
 │   └── functions/
+│       ├── db-helper.js        # Database abstraction (Blobs + file)
 │       ├── subscribe.js        # Save push subscription
 │       ├── sendReminder.js     # Send push notification
 │       ├── markDoseAsTaken.js  # Mark dose as taken
 │       ├── snoozeDose.js       # Snooze a dose
-│       ├── scheduler.js        # Cron job (every 5 min)
-│       └── getStatus.js        # Get dose status
+│       ├── scheduler.js        # Cron job (every 15 min)
+│       ├── getStatus.js        # Get dose status
+│       ├── getMedications.js   # List all medications
+│       ├── addMedication.js    # Add new medication
+│       ├── updateMedication.js # Update medication
+│       └── deleteMedication.js # Delete medication
 ├── data/
 │   └── db.json                 # Simple JSON database
 ├── netlify.toml                # Netlify config
