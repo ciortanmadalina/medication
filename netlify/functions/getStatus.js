@@ -1,7 +1,4 @@
-const fs = require('fs').promises;
-const path = require('path');
-
-const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
+const { readDB } = require('./db-helper');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') {
@@ -9,9 +6,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Read database
-    const dbContent = await fs.readFile(DB_PATH, 'utf8');
-    const db = JSON.parse(dbContent);
+    const db = await readDB();
 
     // Calculate status for each dose
     const now = new Date();

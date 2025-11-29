@@ -1,7 +1,4 @@
-const fs = require('fs').promises;
-const path = require('path');
-
-const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
+const { readDB, writeDB } = require('./db-helper');
 
 // Helper to check if a dose is snoozed
 function isSnoozed(doseId, snoozes) {
@@ -44,14 +41,12 @@ function initializeTodaysDoses(db) {
 
 exports.handler = async (event) => {
   try {
-    // Read database
-    const dbContent = await fs.readFile(DB_PATH, 'utf8');
-    const db = JSON.parse(dbContent);
+    const db = await readDB();
 
     // Initialize today's doses if needed
     const initialized = initializeTodaysDoses(db);
     if (initialized) {
-      await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
+      await writeDB(db);
       console.log('Initialized today\'s doses');
     }
 
@@ -107,7 +102,7 @@ exports.handler = async (event) => {
 
     // Save updated lastSentISO times
     if (results.length > 0) {
-      await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
+      await writeDB(db);
     }
 
     return {

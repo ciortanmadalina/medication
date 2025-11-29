@@ -9,7 +9,8 @@
     "generate-vapid": "web-push generate-vapid-keys"
   },
   "dependencies": {
-    "web-push": "^3.6.6"
+    "web-push": "^3.6.6",
+    "@netlify/blobs": "^7.0.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"

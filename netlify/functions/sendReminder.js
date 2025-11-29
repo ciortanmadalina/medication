@@ -1,8 +1,5 @@
 const webpush = require('web-push');
-const fs = require('fs').promises;
-const path = require('path');
-
-const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
+const { readDB, writeDB } = require('./db-helper');
 
 // Configure web-push with VAPID keys
 webpush.setVapidDetails(
@@ -18,10 +15,7 @@ exports.handler = async (event) => {
 
   try {
     const { doseId } = JSON.parse(event.body);
-    
-    // Read database
-    const dbContent = await fs.readFile(DB_PATH, 'utf8');
-    const db = JSON.parse(dbContent);
+    const db = await readDB();
 
     // Find dose details
     const doseConfig = db.doses.config.find(d => d.id === doseId);
@@ -68,7 +62,7 @@ exports.handler = async (event) => {
       db.subscriptions = db.subscriptions.filter(
         sub => !failedEndpoints.includes(sub.endpoint)
       );
-      await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
+      await writeDB(db);
     }
 
     return {
