@@ -4,18 +4,12 @@ const path = require('path');
 
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
 
-// Default database structure
+// Default database structure - starts with just one medication
 const DEFAULT_DB = {
   subscriptions: [],
   doses: {
     config: [
-      { id: "D1", label: "Morning - Vitamin D", time: "08:00" },
-      { id: "D2", label: "Morning - Blood Pressure", time: "08:30" },
-      { id: "D3", label: "Afternoon - Antibiotic", time: "13:00" },
-      { id: "D4", label: "Afternoon - Pain Relief", time: "14:00" },
-      { id: "D5", label: "Evening - supplement", time: "18:00" },
-      { id: "D6", label: "Evening - Thyroid", time: "19:00" },
-      { id: "D7", label: "Night - Sleep Aid", time: "21:00" }
+      { id: "D1", label: "Morning - Vitamin D", time: "08:00" }
     ],
     today: []
   },

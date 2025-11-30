@@ -1,6 +1,6 @@
 # 💊 Medication Reminder PWA
 
-A free Progressive Web App hosted on Netlify that sends Android push notifications to remind you to take 7 daily medications.
+A free Progressive Web App hosted on Netlify that sends Android push notifications to remind you to take your daily medications.
 
 ## Features
 

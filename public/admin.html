@@ -306,7 +306,7 @@
     </div>
     
     <div class="footer">
-      <p>Admin Panel • PWA Medication Reminder • v1.2.1</p>
+      <p>Admin Panel • PWA Medication Reminder • v1.3.0</p>
     </div>
   </div>
 
@@ -514,7 +514,10 @@
         if (response.ok) {
           showStatus('Medication deleted successfully!', 'success');
           closeDeleteModal();
-          loadMedications();
+          // Remove from local array immediately
+          medications = medications.filter(m => m.id !== deleteId);
+          deleteId = null;
+          renderMedications();
         } else {
           const error = await response.json();
           showStatus(error.error || 'Failed to delete medication', 'error');
